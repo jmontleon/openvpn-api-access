@@ -1,0 +1,127 @@
+---
+apiVersion: project.openshift.io/v1
+kind: Project
+metadata:
+  name: openvpn
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: openvpn
+  namespace: openvpn
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openvpn
+  namespace: openvpn
+  labels:
+    app: openvpn
+    service: openvpn
+spec:
+  ports:
+    - name: openvpn
+      port: 11194
+      targetPort: 11194
+  selector:
+    app: openvpn
+    service: openvpn
+  externalTrafficPolicy: Cluster
+  sessionAffinity: None
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: openvpn
+  namespace: openvpn
+  labels:
+    component: openvpn
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: openvpn
+rules:
+- apiGroups:
+  - security.openshift.io
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use
+  resourceNames:
+  - privileged
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: openvpn
+  labels:
+    component: openvpn
+subjects:
+  - kind: ServiceAccount
+    namespace: openvpn
+    name: openvpn
+roleRef:
+  kind: Role
+  name: openvpn
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openvpn
+  namespace: openvpn
+  labels:
+    app: openvpn
+    service: openvpn
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openvpn
+      service: openvpn
+  template:
+    metadata:
+      labels:
+        app: openvpn
+        service: openvpn
+    spec:
+      serviceAccountName: openvpn
+      securityContext:
+        runAsUser: 0
+      containers:
+      - image: quay.io/jmontleon/openvpn:latest
+        command:
+        - sleep
+        - infinity
+        name: openvpn
+        securityContext:
+          privileged: true
+        env:
+          - name: SERVERPORT
+            value: "51820"
+          - name: PEERS
+            value: "1"
+          - name: PEERDNS
+            value: auto
+        sysctls:
+        - name: "net.ipv4.conf.all.src_valid_mark"
+          value: "1"
+        ports:
+          - containerPort: 51820
+            protocol: UDP
+        volumeMounts:
+          - name: openvpn
+            mountPath: /config
+      volumes:
+        - name: openvpn
+          persistentVolumeClaim:
+            claimName: openvpn
+
