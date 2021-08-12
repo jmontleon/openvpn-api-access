@@ -5,7 +5,7 @@
   tasks:
   - block:
     - name: Install easy-rsa
-      dnf:
+      package:
         name: easy-rsa
         state: latest
       become: true
