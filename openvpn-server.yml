@@ -37,6 +37,25 @@ spec:
   type: LoadBalancer
 ---
 apiVersion: v1
+kind: Service
+metadata:
+  name: proxied-cluster
+  namespace: openvpn
+  labels:
+    app: openvpn
+    service: openvpn
+spec:
+  ports:
+    - name: internal
+      port: 443
+      targetPort: 443
+  selector:
+    app: openvpn
+    service: openvpn
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: openvpn
@@ -104,19 +123,6 @@ spec:
         name: openvpn
         securityContext:
           privileged: true
-        env:
-          - name: SERVERPORT
-            value: "51820"
-          - name: PEERS
-            value: "1"
-          - name: PEERDNS
-            value: auto
-        sysctls:
-        - name: "net.ipv4.conf.all.src_valid_mark"
-          value: "1"
-        ports:
-          - containerPort: 51820
-            protocol: UDP
         volumeMounts:
           - name: openvpn
             mountPath: /config
