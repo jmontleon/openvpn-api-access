@@ -1,9 +1,4 @@
 ---
-apiVersion: project.openshift.io/v1
-kind: Project
-metadata:
-  name: openvpn
----
 apiVersion: v1
 kind: ServiceAccount
 metadata:

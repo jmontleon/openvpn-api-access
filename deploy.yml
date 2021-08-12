@@ -82,6 +82,11 @@
         src: client.conf.j2
         dest: openvpn.conf
 
+    - name: Create client project
+      shell: oc new-project openvpn
+      environment:
+        KUBECONFIG: "{{ OnPremKubeConfig }}"
+
     - name: Create client secret
       shell: oc -n openvpn create secret generic openvpn --from-file=openvpn.conf
       environment:
