@@ -11,4 +11,4 @@ These steps must be carried out from a host with access to both clusters.
 
 1. Edit `config.yml` and adjust the `OnPremKubeConfig` and `CloudKubeConfig` vars appropriately.
 1. Run ansible-playbook deploy.yml
-1. When setting up MTC use https://proxied-cluster.openvpn.svc.cluster.local:443 as the API address
+1. When setting up MTC use https://proxied-cluster.openvpn.svc.cluster.local:443 as the API address for the remote cluster.
