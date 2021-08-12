@@ -67,8 +67,17 @@ spec:
       containers:
       - image: quay.io/jmontleon/openvpn:latest
         command:
-        - sleep
-        - infinity
+        - /usr/local/bin/client-entrypoint.sh
         name: openvpn
         securityContext:
           privileged: true
+        volumeMounts:
+          - name: openvpn-conf
+            mountPath: /openvpn.conf
+            subPath: openvpn.conf
+      volumes:
+      - name: openvpn-conf
+        secret:
+          secretName: openvpn
+          defaultMode: 0400
+

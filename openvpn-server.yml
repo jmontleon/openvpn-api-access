@@ -1,20 +1,21 @@
 ---
-apiVersion: project.openshift.io/v1
-kind: Project
-metadata:
-  name: openvpn
----
 apiVersion: v1
-kind: PersistentVolumeClaim
+kind: ConfigMap
 metadata:
   name: openvpn
   namespace: openvpn
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
+data:
+  openvpn.conf: |
+   dh /certs/dh.pem
+   ca /certs/ca.crt
+   server 192.168.123.0 255.255.255.0
+   dev tun0
+   proto tcp4
+   port 11194
+   keepalive 10 120
+   tmp-dir /tmp/openvpn
+   cert /certs/server.crt
+   key /certs/server.key
 ---
 apiVersion: v1
 kind: Service
@@ -118,16 +119,21 @@ spec:
       containers:
       - image: quay.io/jmontleon/openvpn:latest
         command:
-        - sleep
-        - infinity
+        - /usr/local/bin/server-entrypoint.sh
         name: openvpn
         securityContext:
           privileged: true
         volumeMounts:
           - name: openvpn
-            mountPath: /config
+            mountPath: /certs
+          - name: openvpn-conf
+            mountPath: /openvpn.conf
+            subPath: openvpn.conf
       volumes:
-        - name: openvpn
-          persistentVolumeClaim:
-            claimName: openvpn
-
+      - name: openvpn
+        secret:
+          secretName: openvpn
+          defaultMode: 0400
+      - name: openvpn-conf
+        configMap:
+          name: openvpn

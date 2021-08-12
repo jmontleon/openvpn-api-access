@@ -1,0 +1,109 @@
+- hosts: localhost
+  gather_facts: false
+  vars_files:
+  - config.yml
+  tasks:
+  - block:
+    - name: Install easy-rsa
+      dnf:
+        name: easy-rsa
+        state: latest
+      become: true
+
+    - name: Set up certs
+      shell: /usr/share/easy-rsa/3.0.8/easyrsa {{ item }}
+      environment:
+        EASYRSA_BATCH: 1
+      with_items:
+      - init-pki
+      - build-ca nopass
+      - gen-req server nopass
+      - sign-req server server
+      - gen-req client nopass
+      - sign-req client client
+      - gen-dh
+
+    - name: Make configmap dir
+      file:
+        state: directory
+        path: pki/server
+
+    - name: Copy certs
+      copy:
+       src: "{{ item }}"
+       dest: pki/server
+      with_items:
+      - pki/ca.crt
+      - pki/dh.pem
+      - pki/issued/server.crt
+      - pki/private/server.key
+
+    - name: Create server namespace
+      shell: oc new-project openvpn
+      environment:
+        KUBECONFIG: "{{ CloudKubeConfig }}"
+
+    - name: Create server secret
+      shell: oc create secret generic openvpn --from-file=pki/server
+      environment:
+        KUBECONFIG: "{{ CloudKubeConfig }}"
+
+    - name: Create server deployment
+      shell: oc create -f openvpn-server.yml
+      environment:
+        KUBECONFIG: "{{ CloudKubeConfig }}"
+
+    - name: Gather ca.crt
+      slurp:
+        src: pki/ca.crt
+      register: ca_crt
+
+    - name: Gather client.crt
+      slurp:
+        src: pki/issued/client.crt
+      register: client_crt
+
+    - name: Gather client.key
+      slurp:
+        src: pki/private/client.key
+      register: client_key
+
+    - name: Get opevpn server endpoint
+      shell: oc get service openvpn -n openvpn -o go-template={% raw %}'{{ (index .status.loadBalancer.ingress 0).hostname }}'{% endraw %}
+      register: endpoint
+      retries: 5
+      delay: 10
+      until: endpoint.rc == 0
+
+    - name: Render client template
+      template:
+        src: client.conf.j2
+        dest: openvpn.conf
+
+    - name: Create client secret
+      shell: oc -n openvpn create secret generic openvpn --from-file=openvpn.conf
+      environment:
+        KUBECONFIG: "{{ OnPremKubeConfig }}"
+
+    - name: Add openvpn SA to privileged SCC
+      shell: oc adm policy add-scc-to-user privileged system:serviceaccount:openvpn:openvpn
+      environment:
+        KUBECONFIG: "{{ OnPremKubeConfig }}"
+
+    - name: Create Client deployment
+      shell: oc create -f openvpn-client.yml
+      environment:
+        KUBECONFIG: "{{ OnPremKubeConfig }}"
+
+    always:
+    - name: Remove pki dir
+      file:
+        state: absent
+        path: pki
+        force: true
+
+    - name: Remove client openvpn.conf
+      file:
+        state: absent
+        path: openvpn.conf
+        force: true

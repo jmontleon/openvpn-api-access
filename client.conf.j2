@@ -1,0 +1,17 @@
+client
+dev tun
+remote {{ endpoint.stdout }} 11194 tcp-client
+
+<ca>
+{{ ca_crt['content'] | b64decode }}
+</ca>
+
+<key>
+{{ client_key['content'] | b64decode }}
+</key>
+
+<cert>
+{{ client_crt['content'] | b64decode }}
+</cert>
+
+verify-x509-name "CN=ChangeMe"
