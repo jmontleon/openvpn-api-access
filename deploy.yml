@@ -74,6 +74,8 @@
       retries: 5
       delay: 10
       until: endpoint.rc == 0
+      environment:
+        KUBECONFIG: "{{ CloudKubeConfig }}"
 
     - name: Render client template
       template:
