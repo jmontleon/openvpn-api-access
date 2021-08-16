@@ -61,8 +61,16 @@ spec:
         runAsUser: 0
       containers:
       - image: quay.io/jmontleon/openvpn:latest
+        name: socat
         command:
-        - /usr/local/bin/client-entrypoint.sh
+        - socat
+        - TCP-LISTEN:443,fork,reuseaddr
+        - TCP:172.30.0.1:443
+      - image: quay.io/jmontleon/openvpn:latest
+        command:
+        - openvpn
+        - --config
+        - /openvpn.conf
         name: openvpn
         securityContext:
           privileged: true
@@ -75,4 +83,3 @@ spec:
         secret:
           secretName: openvpn
           defaultMode: 0400
-

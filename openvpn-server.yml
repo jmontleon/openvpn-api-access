@@ -119,7 +119,17 @@ spec:
       containers:
       - image: quay.io/jmontleon/openvpn:latest
         command:
-        - /usr/local/bin/server-entrypoint.sh
+        - mkdir /tmp/openvpn
+        - &&
+        - openvpn
+        - --config
+        - /openvpn.conf
+        name: socat
+      - image: quay.io/jmontleon/openvpn:latest
+        command:
+        - socat
+        - TCP-LISTEN:443,fork,reuseaddr
+        - TCP:192.168.123.6:443
         name: openvpn
         securityContext:
           privileged: true
