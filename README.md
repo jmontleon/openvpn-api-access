@@ -6,6 +6,7 @@ The primary use case for this tool is enabling migrations from an on premise Ope
 
 # Requirements
 - ansible
+- oc 4.x in your path.
 
 # Instructions
 These steps must be carried out from a host with access to both clusters.
