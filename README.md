@@ -6,7 +6,6 @@ The primary use case for this tool is enabling migrations from an on premise Ope
 
 # Requirements
 - ansible
-- easy-rsa available as a package. Fedora includes a package. EPEL provides one for RHEL, UBI, CentOS, etc.
 
 # Instructions
 These steps must be carried out from a host with access to both clusters.

@@ -4,16 +4,23 @@
   - config.yml
   tasks:
   - block:
-    - name: Install easy-rsa
-      package:
-        name: easy-rsa
-        state: latest
-      become: true
+    - name: Create server namespace
+      shell: oc new-project openvpn
+      environment:
+        KUBECONFIG: "{{ CloudKubeConfig }}"
+
+    - name: Start a container to generate certificates
+      shell: oc run -n openvpn openvpn --image=quay.io/jmontleon/openvpn:latest --env EASYRSA_BATCH=1 --command -- sleep infinity
+
+    - name: Wait for openvpn container to be up
+      shell: oc exec -it -n openvpn openvpn ls
+      register: cmd
+      retries: 5
+      delay: 10
+      until: cmd.rc == 0
 
     - name: Set up certs
-      shell: /usr/share/easy-rsa/3.0.8/easyrsa {{ item }}
-      environment:
-        EASYRSA_BATCH: 1
+      shell: oc exec -n openvpn -it openvpn /usr/share/easy-rsa/3/easyrsa {{ item }}
       with_items:
       - init-pki
       - build-ca nopass
@@ -23,12 +30,18 @@
       - sign-req client client
       - gen-dh
 
-    - name: Make configmap dir
+    - name: Copy certs out of the container
+      shell: oc cp -n openvpn openvpn:/pki ./pki
+
+    - name: Delete openvpn pod
+      shell: oc delete po -n openvpn openvpn
+
+    - name: Make server secret directory
       file:
         state: directory
         path: pki/server
 
-    - name: Copy certs
+    - name: Copy certs for server secret
       copy:
        src: "{{ item }}"
        dest: pki/server
@@ -37,11 +50,6 @@
       - pki/dh.pem
       - pki/issued/server.crt
       - pki/private/server.key
-
-    - name: Create server namespace
-      shell: oc new-project openvpn
-      environment:
-        KUBECONFIG: "{{ CloudKubeConfig }}"
 
     - name: Create server secret
       shell: oc create secret generic openvpn --from-file=pki/server
