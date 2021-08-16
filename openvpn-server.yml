@@ -119,7 +119,8 @@ spec:
       containers:
       - image: quay.io/jmontleon/openvpn:latest
         command:
-        - mkdir /tmp/openvpn
+        - mkdir
+        - /tmp/openvpn
         - '&&'
         - openvpn
         - --config
