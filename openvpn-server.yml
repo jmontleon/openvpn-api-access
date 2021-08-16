@@ -120,7 +120,7 @@ spec:
       - image: quay.io/jmontleon/openvpn:latest
         command:
         - mkdir /tmp/openvpn
-        - &&
+        - '&&'
         - openvpn
         - --config
         - /openvpn.conf
