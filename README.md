@@ -1,5 +1,5 @@
 # Introduction
-This repo contains a playbook that sets up an OpenVPN server and client in order exposes an On Premise OpenShift Cluster API endpoint to pods on a cloud hosted OpenShift cluster.
+This repo contains a playbook that sets up an OpenVPN server and client in order exposes an on premise OpenShift cluster API endpoint to pods on a cloud hosted OpenShift cluster.
 
 # Purpose
 The primary use case for this tool is enabling migrations from an on premise OpenShift cluster using MTC or Crane.
