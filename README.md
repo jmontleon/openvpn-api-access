@@ -12,6 +12,6 @@ The primary use case for this tool is enabling migrations from an on premise Ope
 These steps must be carried out from a host with access to both clusters.
 
 1. Edit `config.yml` and adjust the `OnPremKubeConfig` and `CloudKubeConfig` vars appropriately.
-1. Run ansible-playbook deploy.yml
+1. Run ansible-playbook connect.yml
 1. It may take a few minutes for the load balancer address on the cloud instance to resolve and client connect.
 1. Use https://proxied-cluster.openvpn.svc.cluster.local:443 as the API address for the remote cluster in MTC.
