@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: openvpn
-  namespace: openvpn
+  namespace: "{{ namespace }}"
 data:
   openvpn.conf: |
    dh /certs/dh.pem
@@ -21,7 +21,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: openvpn
-  namespace: openvpn
+  namespace: "{{ namespace }}"
   labels:
     app: openvpn
     service: openvpn
@@ -41,7 +41,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: proxied-cluster
-  namespace: openvpn
+  namespace: "{{ namespace }}"
   labels:
     app: openvpn
     service: openvpn
@@ -60,7 +60,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: openvpn
-  namespace: openvpn
+  namespace: "{{ namespace }}"
   labels:
     component: openvpn
 ---
@@ -86,7 +86,7 @@ metadata:
     component: openvpn
 subjects:
   - kind: ServiceAccount
-    namespace: openvpn
+    namespace: "{{ namespace }}"
     name: openvpn
 roleRef:
   kind: Role
@@ -97,7 +97,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: openvpn
-  namespace: openvpn
+  namespace: "{{ namespace }}"
   labels:
     app: openvpn
     service: openvpn

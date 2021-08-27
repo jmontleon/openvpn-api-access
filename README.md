@@ -15,3 +15,5 @@ These steps must be carried out from a host with access to both clusters.
 1. Run ansible-playbook connect.yml
 1. It may take a few minutes for the load balancer address on the cloud instance to resolve and client connect.
 1. Use https://proxied-cluster.openvpn.svc.cluster.local:443 as the API address for the remote cluster in MTC.
+
+The easiest way to migrate from multiple clusters is to set a different namespace for each cluster pair in the config.yml
