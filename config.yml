@@ -1,3 +1,5 @@
 namespace: openvpn
 OnPremKubeConfig:
+OnPremOC: oc
 CloudKubeConfig:
+CloudOC: oc

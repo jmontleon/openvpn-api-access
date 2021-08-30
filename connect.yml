@@ -5,17 +5,17 @@
   tasks:
   - block:
     - name: Create server namespace
-      shell: oc new-project {{ namespace }}
+      shell: "{{ CloudOC }} new-project {{ namespace }}"
       environment:
         KUBECONFIG: "{{ CloudKubeConfig }}"
 
     - name: Start a container to generate certificates
-      shell: oc run -n {{ namespace }} openvpn --image=quay.io/jmontleon/openvpn:latest --env EASYRSA_BATCH=1 --command -- sleep infinity
+      shell: "{{ CloudOC }} run -n {{ namespace }} openvpn --image=quay.io/jmontleon/openvpn:latest --env EASYRSA_BATCH=1 --command -- sleep infinity"
       environment:
         KUBECONFIG: "{{ CloudKubeConfig }}"
 
     - name: Wait for openvpn container to be up
-      shell: oc exec -it -n {{ namespace }} openvpn ls
+      shell: "{{ CloudOC }} exec -it -n {{ namespace }} openvpn ls"
       register: cmd
       retries: 5
       delay: 10
@@ -24,7 +24,7 @@
         KUBECONFIG: "{{ CloudKubeConfig }}"
 
     - name: Set up certs
-      shell: oc exec -n {{ namespace }} -it openvpn /usr/share/easy-rsa/3/easyrsa {{ item }}
+      shell: "{{ CloudOC }} exec -n {{ namespace }} -it openvpn /usr/share/easy-rsa/3/easyrsa {{ item }}"
       with_items:
       - init-pki
       - build-ca nopass
@@ -37,12 +37,12 @@
         KUBECONFIG: "{{ CloudKubeConfig }}"
 
     - name: Copy certs out of the container
-      shell: oc cp -n {{ namespace }} openvpn:/pki ./pki
+      shell: "{{ CloudOC }} cp -n {{ namespace }} openvpn:/pki ./pki"
       environment:
         KUBECONFIG: "{{ CloudKubeConfig }}"
 
     - name: Delete openvpn pod
-      shell: oc delete po -n {{ namespace }} openvpn
+      shell: "{{ CloudOC }} delete po -n {{ namespace }} openvpn"
       environment:
         KUBECONFIG: "{{ CloudKubeConfig }}"
 
@@ -62,7 +62,7 @@
       - pki/private/server.key
 
     - name: Create server secret
-      shell: oc create secret generic openvpn --from-file=pki/server
+      shell: "{{ CloudOC }} create secret generic openvpn --from-file=pki/server"
       environment:
         KUBECONFIG: "{{ CloudKubeConfig }}"
 
@@ -72,7 +72,7 @@
         dest: openvpn-server.yml
 
     - name: Create server deployment
-      shell: oc create -f openvpn-server.yml
+      shell: "{{ CloudOC }} create -f openvpn-server.yml"
       environment:
         KUBECONFIG: "{{ CloudKubeConfig }}"
 
@@ -92,7 +92,7 @@
       register: client_key
 
     - name: Get opevpn server endpoint
-      shell: oc get service openvpn -n {{ namespace }} -o go-template={% raw %}'{{ (index .status.loadBalancer.ingress 0).hostname }}'{% endraw %}
+      shell: "{{ CloudOC }} get service openvpn -n {{ namespace }} -o go-template={% raw %}'{{ (index .status.loadBalancer.ingress 0).hostname }}'{% endraw %}"
       register: endpoint
       retries: 5
       delay: 10
@@ -106,17 +106,17 @@
         dest: openvpn.conf
 
     - name: Create client project
-      shell: oc new-project {{ namespace }}
+      shell: "{{ OnPremOC }} new-project {{ namespace }}"
       environment:
         KUBECONFIG: "{{ OnPremKubeConfig }}"
 
     - name: Create client secret
-      shell: oc -n {{ namespace }} create secret generic openvpn --from-file=openvpn.conf
+      shell: "{{ OnPremOC }} -n {{ namespace }} create secret generic openvpn --from-file=openvpn.conf"
       environment:
         KUBECONFIG: "{{ OnPremKubeConfig }}"
 
     - name: Add openvpn SA to privileged SCC
-      shell: oc adm policy add-scc-to-user privileged system:serviceaccount:{{ namespace }}:openvpn
+      shell: "{{ OnPremOC }} adm policy add-scc-to-user privileged system:serviceaccount:{{ namespace }}:openvpn"
       environment:
         KUBECONFIG: "{{ OnPremKubeConfig }}"
 
@@ -126,7 +126,7 @@
         dest: openvpn-client.yml
 
     - name: Create Client deployment
-      shell: oc create -f openvpn-client.yml
+      shell: "{{ OnPremOC }} create -f openvpn-client.yml"
       environment:
         KUBECONFIG: "{{ OnPremKubeConfig }}"
 
