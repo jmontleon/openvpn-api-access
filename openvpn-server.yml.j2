@@ -64,7 +64,11 @@ metadata:
   labels:
     component: openvpn
 ---
+{% if cloud_minor.stdout|int > 7 %}
 apiVersion: rbac.authorization.k8s.io/v1
+{% else %}
+apiVersion: rbac.authorization.k8s.io/v1beta1
+{% endif %}
 kind: Role
 metadata:
   name: openvpn
@@ -78,7 +82,11 @@ rules:
   resourceNames:
   - privileged
 ---
+{% if cloud_minor.stdout|int > 7 %}
 apiVersion: rbac.authorization.k8s.io/v1
+{% else %}
+apiVersion: rbac.authorization.k8s.io/v1beta1
+{% endif %}
 kind: RoleBinding
 metadata:
   name: openvpn
@@ -93,7 +101,11 @@ roleRef:
   name: openvpn
   apiGroup: rbac.authorization.k8s.io
 ---
+{% if cloud_minor.stdout|int > 7 %}
 apiVersion: apps/v1
+{% else %}
+apiVersion: apps/v1beta1
+{% endif %}
 kind: Deployment
 metadata:
   name: openvpn

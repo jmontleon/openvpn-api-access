@@ -5,7 +5,7 @@ This repo contains a playbook that sets up an OpenVPN server and client in order
 The primary use case for this tool is enabling migrations from an on premise OpenShift cluster using MTC or Crane.
 
 # Requirements
-- ansible
+- ansible >= 2.5
 - a version of oc appropriate for each cluster
 
 # Instructions

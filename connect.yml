@@ -4,6 +4,18 @@
   - config.yml
   tasks:
   - block:
+    - name: Register OnPrem minor version
+      shell: "{{ OnPremOC }} version | grep -i kubernetes | tail -n 1 | awk -F '.' '{ print $2 }'"
+      environment:
+        KUBECONFIG: "{{ OnPremKubeConfig }}"
+      register: on_prem_minor
+
+    - name: Register Cloud minor version
+      shell: "{{ CloudOC }} version | grep -i kubernetes | tail -n 1 | awk -F '.' '{ print $2 }'"
+      environment:
+        KUBECONFIG: "{{ CloudKubeConfig }}"
+      register: cloud_minor
+
     - name: Create server namespace
       shell: "{{ CloudOC }} new-project {{ namespace }}"
       environment:
